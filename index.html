@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102a43">
+<title>Clinical Reading Roulette</title>
+<style>
+:root{color-scheme:light;--navy:#102a43;--ink:#172b4d;--muted:#526579;--line:#dfe7ef}
+*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(100%,620px);margin:auto;padding:max(22px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+header{background:var(--navy);color:#fff;border-radius:24px;padding:23px;margin-bottom:16px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.74rem;font-weight:800;opacity:.78}
+h1{font-size:1.8rem;line-height:1.12;margin:8px 0}header p{margin:0;color:#e1edf7;line-height:1.5}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin:13px 0;box-shadow:0 5px 18px #102a4308}
+h2{font-size:1.12rem;margin:0 0 6px}.desc{margin:0 0 14px;color:var(--muted);font-size:.92rem;line-height:1.5}
+button,.btn{width:100%;display:flex;justify-content:center;align-items:center;gap:8px;border:0;border-radius:14px;padding:14px 15px;min-height:50px;font:inherit;font-weight:750;text-decoration:none;text-align:center;cursor:pointer}
+.pem{background:#d9efff;color:#075985}.cor{background:#eee4ff;color:#5b21b6}.surprise{background:#dcfce7;color:#166534}.neutral{background:#eef2f6;color:var(--ink);margin-top:9px}.saveform{display:grid;gap:9px;margin-top:12px}.saveform textarea{width:100%;min-height:76px;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit;resize:vertical}.saved-item{border-top:1px solid var(--line);padding:13px 0}.saved-item:first-child{border-top:0}.saved-item a{color:#075985;font-weight:750;overflow-wrap:anywhere}.saved-actions{display:flex;gap:8px;margin-top:8px}.saved-actions button{width:auto;min-height:38px;padding:8px 11px;font-size:.85rem}.delete{background:#fee2e2;color:#991b1b}
+.result{display:none;margin-top:13px;border:1px solid var(--line);background:#f8fafc;padding:14px;border-radius:14px;line-height:1.5}.result.show{display:block}.result a{color:#075985;font-weight:750;overflow-wrap:anywhere}
+.meta{font-size:.78rem;color:#526579;margin-bottom:7px}.study-title{font-weight:800;font-size:1.02rem;margin-bottom:6px}.tag{display:inline-block;font-size:.75rem;background:#e9eef4;border-radius:999px;padding:4px 8px;margin:0 4px 8px 0}
+.note{font-size:.81rem;line-height:1.5;color:var(--muted);padding:3px 4px}.small{font-size:.84rem;color:var(--muted)}.controls{display:flex;gap:8px;flex-wrap:wrap}.controls button{flex:1;min-width:130px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">One-tap learning</div>
+<h1>Clinical Reading Roulette</h1>
+<p>One tap to open a research synthesis article or coronial finding. Save useful links with your own notes for later.</p>
+</header>
+
+<section class="card">
+<h2>🎲 Surprise me</h2>
+<p class="desc">Opens a random research-synthesis article or eligible coronial finding. Add a note to save it for later.</p>
+<button class="surprise" onclick="surpriseMe()">Choose for me ↗</button>
+<div id="surpriseResult" class="result" aria-live="polite"></div>
+</section>
+
+<section class="card">
+<h2>🔖 My saved links</h2>
+<p class="desc">Saved on this device and browser, including your free-text reason for saving each link.</p>
+<div id="savedLinks" aria-live="polite"></div>
+</section>
+
+<p class="note"><strong>Scope and privacy:</strong> The article list is a curated set of research-synthesis style articles from Don’t Forget the Bubbles, not a live feed. Saved links and notes are stored locally in this browser on this device; they do not automatically sync to another phone or browser. Coronial summaries and tags may be inaccurate; use the original court finding as the authoritative source.</p>
+</main>
+<script>
+const studies = [
+ {title:"The 105th Bubble Wrap: DFTB26 Bubble Wrap Live – General Paediatrics",journal:"September 2026 · Critical appraisal of five paediatric papers",url:"https://dontforgetthebubbles.com/the-105th-bubble-wrap-dftb-26-bw-live-gen-paeds/"},
+ {title:"The 101st Bubble Wrap x PEM STAT",journal:"April 2026 · Paediatric emergency medicine literature synthesis",url:"https://dontforgetthebubbles.com/the-101st-bubble-wrap-x-pem-stat/"},
+ {title:"The 87th Bubble Wrap",journal:"2025 · Recent paediatric literature, including systematic reviews",url:"https://dontforgetthebubbles.com/the-87th-bubble-wrap/"},
+ {title:"Bubble Wrap PLUS – September 2026",journal:"Monthly paediatric journal club and evidence highlights",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-september-2026/"},
+ {title:"Bubble Wrap PLUS – August 2026",journal:"Monthly paediatric journal club; includes guidelines and systematic reviews",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-august-2026/"},
+ {title:"Bubble Wrap PLUS – July 2026",journal:"Monthly paediatric journal club and evidence highlights",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-july-2026/"},
+ {title:"Bubble Wrap PLUS – May 2026",journal:"Paediatric research synthesis and clinical evidence",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-may-2026/"},
+ {title:"Bubble Wrap PLUS – March 2026",journal:"Monthly paediatric journal club and evidence highlights",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-march-2026/"},
+ {title:"Bubble Wrap PLUS – February 2026",journal:"Monthly paediatric journal club and evidence highlights",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-february-2026/"},
+ {title:"Bubble Wrap PLUS – January 2026",journal:"Monthly paediatric journal club and evidence highlights",url:"https://dontforgetthebubbles.com/bubble-wrap-plus-january-2026/"},
+ {title:"Are You Worried Your Child Is Getting Worse?",journal:"Evidence synthesis on paediatric early warning and escalation systems",url:"https://dontforgetthebubbles.com/are-you-worried-your-child-is-getting-worse/"},
+ {title:"It’s More of a Guideline",journal:"Evidence-based discussion of clinical practice guidelines in paediatric emergency medicine",url:"https://dontforgetthebubbles.com/its-more-of-a-guideline/"}
+];
+const cases = [
+ {title:"Inquest into the death of Daniel Thomas Wright",detail:"Queensland · Prematurity-associated lung and bowel disease; complex-needs infant, growth and feeding concerns.",tags:["Neonatology","Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/qld-2025-findings_daniel_wright"},
+ {title:"Inquest into the Death of Baby E (name subject to suppression order)",detail:"Western Australia · Complex congenital conditions, neonatal intensive care, surgery and palliative care.",tags:["Neonatology","Paediatric surgery"],url:"https://www.coronial.com.au/finding/wa-2021-baby_e__name_subject_to_suppressio"},
+ {title:"Inquest into the death of AF",detail:"New South Wales · Paediatric abdominal injury, bowel perforation and communication/system issues.",tags:["Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/nsw-2017-af_20_20findings_20_20redacted"},
+ {title:"Coroner’s Finding: FL (de-identified)",detail:"Tasmania · Short bowel syndrome, long-term parenteral nutrition and possible sepsis.",tags:["Paediatric surgery"],url:"https://www.coronial.com.au/finding/tas-2022-fl_de_identified_pdf"},
+ {title:"Coroner’s Finding: RS (de-identified)",detail:"Tasmania · Small bowel obstruction, volvulus, deterioration and escalation of care.",tags:["Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/tas-2023-rs_de_identified_pdf"},
+ {title:"Inquest into the death of Nathan Thomas James Wrench",detail:"Australian Capital Territory · Infant with intussusception, sepsis and communication/transfer issues.",tags:["Paediatric surgery"],url:"https://www.coronial.com.au/finding/act-0000-inquest-into-the-death-of-nathan-thomas-james-wrench"},
+ {title:"Finding into death of RD Z",detail:"Victoria · Child with chronic constipation and bowel obstruction; delayed surgical review and emergency escalation.",tags:["Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/vic-2024-cor_2022_001597"},
+ {title:"Finding into death of Callie Griffiths-I’Anson",detail:"Victoria · Post-operative deterioration and after-hours communication concerns.",tags:["Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/vic-2023-cor_2018_002701"},
+ {title:"Finding into death of BCT",detail:"Victoria · Paediatric bowel perforation, sepsis and escalation/communication issues.",tags:["Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/vic-2023-cor_2021_006991"},
+ {title:"AINALIDIS Taylor",detail:"Victoria · Congenital heart disease and cardiorespiratory failure; equipment and systems lessons.",tags:["Neonatology","Paediatrics","Paediatric surgery"],url:"https://www.coronial.com.au/finding/vic-legacy-ainalidis_taylor"}
+];
+let currentStudy=null;
+let currentItem=null;
+let currentKind="study";
+const STORAGE_KEY="clinicalReadingRouletteSavedLinksV1";
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function render(item, target, kind){
+ const box=document.getElementById(target);
+ const tagHtml=item.tags ? item.tags.map(t=>"<span class='tag'>"+t+"</span>").join("") : "";
+ const detail=item.detail || item.journal;
+ box.innerHTML="<div class='study-title'>"+item.title+"</div><div class='meta'>"+detail+"</div>"+tagHtml+"<p style='margin:8px 0 0'><a href='"+item.url+"' target='_blank' rel='noopener'>Open full record / finding ↗</a></p>";
+ box.classList.add("show");
+}
+function randomStudy(){
+ currentStudy=pick(studies);
+ currentItem=currentStudy;
+ currentKind="study";
+ showSurprise(currentItem);
+ window.open(currentItem.url,"_blank","noopener");
+}
+function randomCase(){
+ currentItem=pick(cases);
+ currentKind="case";
+ showSurprise(currentItem);
+ window.open(currentItem.url,"_blank","noopener");
+}
+function showSurprise(item){
+ const box=document.getElementById("surpriseResult");
+ if(!box)return;
+ const detail=item.detail||item.journal||"";
+ const tagHtml=item.tags?item.tags.map(t=>"<span class='tag'>"+escapeHtml(t)+"</span>").join(""):"";
+ box.innerHTML="<div class='study-title'>"+escapeHtml(item.title)+"</div><div class='meta'>"+escapeHtml(detail)+"</div>"+tagHtml+"<p style='margin:8px 0 0'><a href='"+item.url+"' target='_blank' rel='noopener'>Open article / finding ↗</a></p><div class='saveform'><label for='surpriseNote'><strong>Save this link with a note</strong></label><textarea id='surpriseNote' placeholder='e.g. UTI, bronchiolitis, escalation of care'></textarea><button class='surprise' onclick='saveCurrentItem()'>Save link + note</button></div>";
+ box.classList.add("show");
+}
+function getSaved(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch(e){return []}}
+function setSaved(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));renderSaved()}
+function saveLink(item,note){const saved=getSaved();if(saved.some(s=>s.url===item.url)){alert("This link is already saved. You can edit its note in My saved links.");return}saved.unshift({title:item.title,url:item.url,note:(note||"").trim(),savedAt:new Date().toISOString()});setSaved(saved)}
+function saveCurrentStudy(){if(currentStudy)saveLink(currentStudy,document.getElementById("surpriseNote")?.value||"")}
+function saveCurrentCase(){if(currentItem&&currentKind==="case")saveLink(currentItem,document.getElementById("surpriseNote")?.value||"")}
+function saveCurrentItem(){if(currentItem)saveLink(currentItem,document.getElementById("surpriseNote")?.value||"")}
+function renderSaved(){const box=document.getElementById("savedLinks");const items=getSaved();if(!items.length){box.innerHTML="<p class='small'>No saved links yet. Generate an article or case, add a note, and save it here.</p>";return}box.innerHTML=items.map((item,index)=>"<div class='saved-item'><div class='study-title'>"+escapeHtml(item.title)+"</div><a href='"+item.url+"' target='_blank' rel='noopener'>Open saved link ↗</a><div class='small' style='margin-top:6px'>"+(item.note?"Note: "+escapeHtml(item.note):"No note added")+"</div><div class='saved-actions'><button class='neutral' onclick='editNote("+index+")'>Edit note</button><button class='delete' onclick='deleteSaved("+index+")'>Remove</button></div></div>").join("")}
+function escapeHtml(value){return String(value).replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function editNote(index){const items=getSaved();const note=prompt("Edit your note for: "+items[index].title,items[index].note||"");if(note!==null){items[index].note=note.trim();setSaved(items)}}
+function deleteSaved(index){const items=getSaved();if(confirm("Remove this saved link?")){items.splice(index,1);setSaved(items)}}
+function surpriseMe(){if(Math.random()<.5){randomStudy()}else{randomCase()}}
+renderSaved();
+</script>
+</body>
+</html>
